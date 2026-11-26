@@ -14,6 +14,7 @@ class ApiException implements Exception {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
+      case DioExceptionType.transformTimeout:
         return const ApiException(
           'সার্ভার সাড়া দিচ্ছে না। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।',
         );

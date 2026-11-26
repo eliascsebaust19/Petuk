@@ -47,7 +47,7 @@ void main() {
     test('first add adopts the restaurant and charges the flat fee',
         () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       await _settle();
       expect(bloc.state.restaurantId, 'r1');
@@ -59,10 +59,10 @@ void main() {
 
     test('same restaurant + identical options merges quantity', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       await _settle();
       expect(bloc.state.items.length, 1);
@@ -73,10 +73,10 @@ void main() {
     test('different restaurant parks a pendingAddition (no mutation)',
         () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       bloc.add(
-        const CartItemAdded(food: burger, restaurantName: restaurant2),
+        CartItemAdded(food: burger, restaurantName: restaurant2),
       );
       await _settle();
       expect(bloc.state.pendingAddition, isNotNull);
@@ -87,10 +87,10 @@ void main() {
 
     test('confirm replaces the cart with the new restaurant', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       bloc.add(
-        const CartItemAdded(food: burger, restaurantName: restaurant2),
+        CartItemAdded(food: burger, restaurantName: restaurant2),
       );
       await _settle();
       bloc.add(const CartAdditionConfirmed());
@@ -104,10 +104,10 @@ void main() {
 
     test('cancel keeps the original cart untouched', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       bloc.add(
-        const CartItemAdded(food: burger, restaurantName: restaurant2),
+        CartItemAdded(food: burger, restaurantName: restaurant2),
       );
       await _settle();
       bloc.add(const CartAdditionCancelled());
@@ -119,7 +119,7 @@ void main() {
 
     test('removing the last item resets the restaurant', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       await _settle();
       bloc.add(
@@ -138,14 +138,14 @@ void main() {
   group('options identity', () {
     test('different spice levels create separate lines', () async {
       bloc.add(
-        const CartItemAdded(
+        CartItemAdded(
           food: kacchi,
           restaurantName: restaurant1,
           spice: SpiceLevel.low,
         ),
       );
       bloc.add(
-        const CartItemAdded(
+        CartItemAdded(
           food: kacchi,
           restaurantName: restaurant1,
           spice: SpiceLevel.high,
@@ -173,7 +173,7 @@ void main() {
   group('coupons & bill math', () {
     test('WELCOME40 gives a flat ৳40 off', () async {
       bloc.add(
-        const CartItemAdded(food: kacchi, restaurantName: restaurant1),
+        CartItemAdded(food: kacchi, restaurantName: restaurant1),
       );
       await _settle();
       bloc.add(const CartCouponApplyRequested('welcome40'));
@@ -185,7 +185,7 @@ void main() {
 
     test('coupon below minimum is rejected with a notice', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       await _settle();
       bloc.add(const CartCouponApplyRequested('WELCOME40'));
@@ -197,7 +197,7 @@ void main() {
     test('coupon is auto-removed when subtotal drops below minimum',
         () async {
       bloc.add(
-        const CartItemAdded(
+        CartItemAdded(
           food: borhani,
           restaurantName: restaurant1,
           quantity: 4,
@@ -237,7 +237,7 @@ void main() {
 
     test('FIRSTFREE waives exactly the delivery fee', () async {
       bloc.add(
-        const CartItemAdded(food: borhani, restaurantName: restaurant1),
+        CartItemAdded(food: borhani, restaurantName: restaurant1),
       );
       await _settle();
       bloc.add(const CartCouponApplyRequested('FIRSTFREE'));
@@ -249,7 +249,7 @@ void main() {
     test('unknown code surfaces a notice, keeps the bill intact',
         () async {
       bloc.add(
-        const CartItemAdded(food: kacchi, restaurantName: restaurant1),
+        CartItemAdded(food: kacchi, restaurantName: restaurant1),
       );
       await _settle();
       bloc.add(const CartCouponApplyRequested('NOPE'));
