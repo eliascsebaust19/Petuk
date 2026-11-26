@@ -1,0 +1,317 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/router/app_router.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/bn_format.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_view.dart';
+import '../../../data/models/food_category.dart';
+import '../../../data/models/restaurant.dart';
+import '../../../data/repositories/catalog_repository.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../cart/bloc/cart_bloc.dart';
+import '../../cart/bloc/cart_event.dart';
+import '../bloc/home_bloc.dart';
+import '../widgets/category_chips.dart';
+import '../widgets/location_selector.dart';
+import '../widgets/promo_banner.dart';
+import '../widgets/restaurant_card.dart';
+
+/// Home: location selector ("বীরগঞ্জ পৌরসভা"), search, category chips,
+/// promo banners and the restaurant list (SRS FR-C02/03).
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<HomeBloc>(
+      create: (BuildContext context) => HomeBloc(
+        catalogRepository: context.read<CatalogRepository>(),
+      )..add(const HomeStarted()),
+      child: const _HomeView(),
+    );
+  }
+}
+
+class _HomeView extends StatelessWidget {
+  const _HomeView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const _HomeHeader(),
+            const SizedBox(height: 10),
+            BlocBuilder<HomeBloc, HomeState>(
+              buildWhen: (HomeState p, HomeState c) =>
+                  p.category != c.category,
+              builder: (BuildContext context, HomeState state) {
+                return CategoryChips(
+                  selected: state.category,
+                  onSelected: (FoodCategory? category) => context
+                      .read<HomeBloc>()
+                      .add(HomeCategoryChanged(category)),
+                );
+              },
+            ),
+            const SizedBox(height: 6),
+            Expanded(
+              child: BlocBuilder<HomeBloc, HomeState>(
+                builder: (BuildContext context, HomeState state) {
+                  if (state.status == HomeStatus.initial ||
+                      state.status == HomeStatus.loading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  if (state.status == HomeStatus.failure) {
+                    return ErrorView(
+                      message:
+                          state.error ?? 'রেস্তোরাঁর তালিকা লোড করা যায়নি।',
+                      onRetry: () => context
+                          .read<HomeBloc>()
+                          .add(const HomeRefreshRequested()),
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context
+                          .read<HomeBloc>()
+                          .add(const HomeRefreshRequested());
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 700),
+                      );
+                    },
+                    child: state.filtered.isEmpty
+                        ? ListView(
+                            physics:
+                                const AlwaysScrollableScrollPhysics(),
+                            children: const <Widget>[
+                              SizedBox(height: 60),
+                              EmptyState(
+                                emoji: '🔍',
+                                title: 'কিছু পাওয়া যায়নি',
+                                message:
+                                    'অন্য ক্যাটাগরি বা নাম দিয়ে খুঁজে দেখুন।',
+                              ),
+                            ],
+                          )
+                        : ListView(
+                            physics:
+                                const AlwaysScrollableScrollPhysics(),
+                            padding:
+                                const EdgeInsets.only(top: 8, bottom: 24),
+                            children: <Widget>[
+                              PromoBanner(
+                                onCakeTap: () => context
+                                    .read<HomeBloc>()
+                                    .add(
+                                      const HomeCategoryChanged(
+                                        FoodCategory.cake,
+                                      ),
+                                    ),
+                              ),
+                              const SizedBox(height: 14),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        'আশেপাশের রেস্তোরাঁ',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${BnFormat.digits(state.filtered.length)}টি',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              for (final Restaurant restaurant
+                                  in state.filtered)
+                                RestaurantCard(
+                                  restaurant: restaurant,
+                                  onTap: () => Navigator.of(context)
+                                      .pushNamed(
+                                    AppRoutes.restaurant,
+                                    arguments: restaurant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatefulWidget {
+  const _HomeHeader();
+
+  @override
+  State<_HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<_HomeHeader> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _signOut(BuildContext context) {
+    context.read<CartBloc>().add(const CartClearRequested());
+    context.read<AuthBloc>().add(const AuthSignedOut());
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.login,
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Column(
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(
+                Icons.location_on_rounded,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: BlocBuilder<HomeBloc, HomeState>(
+                  buildWhen: (HomeState p, HomeState c) =>
+                      p.zone != c.zone,
+                  builder: (BuildContext context, HomeState state) {
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => showLocationSelector(context),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                state.zone,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.titleMedium,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 22,
+                              color: AppColors.slate60,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (BuildContext context, AuthState auth) {
+                  return PopupMenuButton<String>(
+                    tooltip: 'প্রোফাইল',
+                    onSelected: (String value) {
+                      if (value == 'logout') _signOut(context);
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        enabled: false,
+                        child: Text(
+                          auth.session?.displayName ?? 'অতিথি',
+                          style: text.bodyMedium
+                              ?.copyWith(color: AppColors.slate60),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'logout',
+                        child: Row(
+                          children: <Widget>[
+                            Icon(
+                              Icons.logout_rounded,
+                              size: 18,
+                              color: AppColors.error,
+                            ),
+                            SizedBox(width: 8),
+                            Text('লগআউট'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: const CircleAvatar(
+                      radius: 17,
+                      backgroundColor: AppColors.primarySoft,
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _searchController,
+            textInputAction: TextInputAction.search,
+            onChanged: (String query) {
+              context.read<HomeBloc>().add(HomeQueryChanged(query));
+              setState(() {});
+            },
+            decoration: InputDecoration(
+              hintText: 'খাবার বা রেস্তোরাঁ খুঁজুন…',
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+                color: AppColors.slate40,
+              ),
+              suffixIcon: _searchController.text.isEmpty
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      onPressed: () {
+                        _searchController.clear();
+                        context
+                            .read<HomeBloc>()
+                            .add(const HomeQueryChanged(''));
+                        setState(() {});
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
