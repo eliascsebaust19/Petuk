@@ -1,0 +1,474 @@
+import '../models/food_category.dart';
+import '../models/food_item.dart';
+import '../models/restaurant.dart';
+
+/// Bundled launch catalog — the top 8 partners of Birganj Pourashava
+/// (SRS Week-3 plan: "শীর্ষ ৮টি রেস্তোরাঁর মেনু আপলোড").
+///
+/// Prices follow the market study ranges: biryani ৳130–260, fast food
+/// ৳80–180, cakes ৳450–1,200/pound, sweets ৳200–450/kg. Images are null
+/// for Phase 1 (lightweight emoji visuals, zero downloads on 2G); the
+/// `imageUrl` field lights up automatically when the API supplies photos.
+abstract final class MockCatalogData {
+  static const List<Restaurant> restaurants = <Restaurant>[
+    Restaurant(
+      id: 'r1',
+      name: 'বীরগঞ্জ বিরিয়ানি হাউজ',
+      cuisine: 'বিরিয়ানি • তেহারি • পোলাও',
+      landmark: 'পাইলট স্কুলের বিপরীতে',
+      rating: 4.6,
+      ratingCount: 320,
+      etaMinutes: 35,
+      distanceKm: 1.2,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r1-f1',
+          restaurantId: 'r1',
+          name: 'কাচ্চি বিরিয়ানি',
+          description:
+              'খাঁসির মাংস ও বাসমতি চালের দমে রান্না কাচ্চি, সাথে আলু ও বোরহানি।',
+          price: 260,
+          category: FoodCategory.biryani,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১:১ (একজনের)'),
+            FoodVariant(label: '১:২ সেট', priceDelta: 140),
+          ],
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r1-f2',
+          restaurantId: 'r1',
+          name: 'চিকেন বিরিয়ানি',
+          description: 'মসলাদার চিকেন বিরিয়ানি, সাথে সালাদ ও লেবু।',
+          price: 180,
+          category: FoodCategory.biryani,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১:১ (একজনের)'),
+            FoodVariant(label: '১:২ সেট', priceDelta: 100),
+          ],
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r1-f3',
+          restaurantId: 'r1',
+          name: 'মোরগ পোলাও',
+          description: 'ঘিয়ে ভাজা পোলাও, সাথে ঝোল ঝাল মোরগের রোস্ট।',
+          price: 160,
+          category: FoodCategory.biryani,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r1-f4',
+          restaurantId: 'r1',
+          name: 'বিফ তেহারি',
+          description: 'দেশি মসলায় রান্না নরম বিফ তেহারি।',
+          price: 150,
+          category: FoodCategory.biryani,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r1-f5',
+          restaurantId: 'r1',
+          name: 'বোরহানি (গ্লাস)',
+          description: 'টক-মিষ্টি পুদিনা বোরহানি, বিরিয়ানির সেরা সঙ্গী।',
+          price: 40,
+          category: FoodCategory.biryani,
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r2',
+      name: 'ফুড কর্নার',
+      cuisine: 'বার্গার • রোল • ফ্রাই',
+      landmark: 'কলেজ মোড়',
+      rating: 4.4,
+      ratingCount: 210,
+      etaMinutes: 30,
+      distanceKm: 0.8,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r2-f1',
+          restaurantId: 'r2',
+          name: 'চিকেন বার্গার',
+          description: 'ক্রিসপি চিকেন প্যাটি, চিজ ও স্পেশাল সস।',
+          price: 120,
+          category: FoodCategory.burger,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r2-f2',
+          restaurantId: 'r2',
+          name: 'বিফ বার্গার',
+          description: 'গ্রিলড বিফ প্যাটি ও ক্যারামেলাইজড পেঁয়াজ।',
+          price: 150,
+          category: FoodCategory.burger,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r2-f3',
+          restaurantId: 'r2',
+          name: 'চিকেন রোল',
+          description: 'পরোটা মোড়ানো চিকেন রোল, পেঁয়াজ-শসা সহ।',
+          price: 90,
+          category: FoodCategory.burger,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r2-f4',
+          restaurantId: 'r2',
+          name: 'চিকেন শর্মা',
+          description: 'গার্লিক সসে মোড়ানো জুসি চিকেন শর্মা।',
+          price: 110,
+          category: FoodCategory.burger,
+          isAvailable: false,
+        ),
+        FoodItem(
+          id: 'r2-f5',
+          restaurantId: 'r2',
+          name: 'ফ্রেঞ্চ ফ্রাই',
+          description: 'মচমচে সল্টেড ফ্রেঞ্চ ফ্রাই, টমেটো সস সহ।',
+          price: 80,
+          category: FoodCategory.burger,
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r3',
+      name: 'পিজ্জা পয়েন্ট',
+      cuisine: 'পিৎজা • গার্লিক ব্রেড',
+      landmark: 'হাসপাতাল রোড',
+      rating: 4.3,
+      ratingCount: 95,
+      etaMinutes: 40,
+      distanceKm: 1.5,
+      status: RestaurantStatus.busy,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r3-f1',
+          restaurantId: 'r3',
+          name: 'চিকেন পিজ্জা',
+          description: 'ওভেন-বেকড চিকেন টপিংস ও মোজারেলা চিজ।',
+          price: 180,
+          category: FoodCategory.pizza,
+          variants: <FoodVariant>[
+            FoodVariant(label: '৬ ইঞ্চি'),
+            FoodVariant(label: '৯ ইঞ্চি', priceDelta: 120),
+          ],
+        ),
+        FoodItem(
+          id: 'r3-f2',
+          restaurantId: 'r3',
+          name: 'বিফ পেপারনি পিজ্জা',
+          description: 'বিফ পেপারনি, অলিভ ও এক্সট্রা চিজ।',
+          price: 220,
+          category: FoodCategory.pizza,
+          variants: <FoodVariant>[
+            FoodVariant(label: '৬ ইঞ্চি'),
+            FoodVariant(label: '৯ ইঞ্চি', priceDelta: 140),
+          ],
+        ),
+        FoodItem(
+          id: 'r3-f3',
+          restaurantId: 'r3',
+          name: 'ডাবল চিজ পিজ্জা',
+          description: 'দ্বিগুণ মোজারেলা, বাটার ক্রাস্ট।',
+          price: 160,
+          category: FoodCategory.pizza,
+          variants: <FoodVariant>[
+            FoodVariant(label: '৬ ইঞ্চি'),
+            FoodVariant(label: '৯ ইঞ্চি', priceDelta: 100),
+          ],
+        ),
+        FoodItem(
+          id: 'r3-f4',
+          restaurantId: 'r3',
+          name: 'গার্লিক ব্রেড (৪ পিস)',
+          description: 'গার্লিক বাটারে বেকড ব্রেড, চিজ ডিপ সহ।',
+          price: 90,
+          category: FoodCategory.pizza,
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r4',
+      name: 'কেক ঘর',
+      cuisine: 'বাথডে কেক • পেস্ট্রি',
+      landmark: 'পুরাতন বাজার',
+      rating: 4.7,
+      ratingCount: 150,
+      etaMinutes: 45,
+      distanceKm: 2.1,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r4-f1',
+          restaurantId: 'r4',
+          name: 'ভ্যানিলা কেক',
+          description:
+              'নরম স্পঞ্জ ভ্যানিলা কেক — ক্যান্ডেল, ছুরি ও উইশিং কার্ড ফ্রি।',
+          price: 450,
+          category: FoodCategory.cake,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ পাউন্ড'),
+            FoodVariant(label: '২ পাউন্ড', priceDelta: 450),
+          ],
+          noteHint: 'কেকের গায়ে নাম লিখুন (ফ্রি)…',
+        ),
+        FoodItem(
+          id: 'r4-f2',
+          restaurantId: 'r4',
+          name: 'চকলেট কেক',
+          description: 'রিচ চকলেট গানাশ ও চকো চিপস সহ সেলিব্রেশন কেক।',
+          price: 550,
+          category: FoodCategory.cake,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ পাউন্ড'),
+            FoodVariant(label: '২ পাউন্ড', priceDelta: 500),
+          ],
+          noteHint: 'কেকের গায়ে নাম লিখুন (ফ্রি)…',
+        ),
+        FoodItem(
+          id: 'r4-f3',
+          restaurantId: 'r4',
+          name: 'স্ট্রবেরি কেক',
+          description: 'টাটকা স্ট্রবেরি টপিং ও হুইপড ক্রিম।',
+          price: 500,
+          category: FoodCategory.cake,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ পাউন্ড'),
+            FoodVariant(label: '২ পাউন্ড', priceDelta: 480),
+          ],
+          noteHint: 'কেকের গায়ে নাম লিখুন (ফ্রি)…',
+        ),
+        FoodItem(
+          id: 'r4-f4',
+          restaurantId: 'r4',
+          name: 'ব্ল্যাক ফরেস্ট কেক',
+          description: 'চেরি ও চকলেট স্পঞ্জের ক্লাসিক ব্ল্যাক ফরেস্ট।',
+          price: 600,
+          category: FoodCategory.cake,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ পাউন্ড'),
+            FoodVariant(label: '২ পাউন্ড', priceDelta: 550),
+          ],
+          noteHint: 'কেকের গায়ে নাম লিখুন (ফ্রি)…',
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r5',
+      name: 'স্বাদ মিষ্টান্ন ভান্ডার',
+      cuisine: 'রসমালাই • চমচম • মিষ্টি',
+      landmark: 'বীরগঞ্জ পৌর বাজার',
+      rating: 4.5,
+      ratingCount: 180,
+      etaMinutes: 30,
+      distanceKm: 1.0,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r5-f1',
+          restaurantId: 'r5',
+          name: 'রসমালাই',
+          description: 'ক্রিমি রসমালাই — অতিথি আপ্যায়নের প্রথম পছন্দ।',
+          price: 350,
+          category: FoodCategory.mishti,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ কেজি'),
+            FoodVariant(label: 'আধা কেজি', priceDelta: -175),
+          ],
+        ),
+        FoodItem(
+          id: 'r5-f2',
+          restaurantId: 'r5',
+          name: 'চমচম',
+          description: 'রসে ভেজানো নরম চমচম, উপরের স্তরে ক্ষীর।',
+          price: 300,
+          category: FoodCategory.mishti,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ কেজি'),
+            FoodVariant(label: 'আধা কেজি', priceDelta: -150),
+          ],
+        ),
+        FoodItem(
+          id: 'r5-f3',
+          restaurantId: 'r5',
+          name: 'কালোজাম',
+          description: 'ঘিয়ে ভাজা রসালো কালোজাম।',
+          price: 320,
+          category: FoodCategory.mishti,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ কেজি'),
+            FoodVariant(label: 'আধা কেজি', priceDelta: -160),
+          ],
+        ),
+        FoodItem(
+          id: 'r5-f4',
+          restaurantId: 'r5',
+          name: 'সাদা মিষ্টি',
+          description: 'ট্র্যাডিশনাল সাদা মিষ্টি — চায়ের সাথে পারফেক্ট।',
+          price: 250,
+          category: FoodCategory.mishti,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ কেজি'),
+            FoodVariant(label: 'আধা কেজি', priceDelta: -125),
+          ],
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r6',
+      name: 'ঝাড়বাড়ী বিফ ভুনা',
+      cuisine: 'খাঁসির ভুনা • তেহারি • পরোটা',
+      landmark: 'ঝাড়বাড়ী বাজার',
+      rating: 4.8,
+      ratingCount: 410,
+      etaMinutes: 40,
+      distanceKm: 3.0,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r6-f1',
+          restaurantId: 'r6',
+          name: 'খাঁসির মাংস ভুনা (প্লেট)',
+          description:
+              'জেলাজুড়ে বিখ্যাত ঝাড়বাড়ীর খাঁসির মাংস, ধীরে ভুনা।',
+          price: 250,
+          category: FoodCategory.biryani,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r6-f2',
+          restaurantId: 'r6',
+          name: 'বিফ তেহারি',
+          description: 'কম তেলে রান্না ঘরোয়া বিফ তেহারি।',
+          price: 160,
+          category: FoodCategory.biryani,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r6-f3',
+          restaurantId: 'r6',
+          name: 'খিচুড়ি + বিফ ভুনা',
+          description: 'ভুনা খিচুড়ির সাথে ঝাল বিফ ভুনা কম্বো।',
+          price: 180,
+          category: FoodCategory.biryani,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r6-f4',
+          restaurantId: 'r6',
+          name: 'পরোটা (২ পিস)',
+          description: 'খাস্তা পরোটা, ভুনার সাথে সেরা।',
+          price: 40,
+          category: FoodCategory.biryani,
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r7',
+      name: 'বগুড়ার স্বাদের দই',
+      cuisine: 'দই • ঘোল',
+      landmark: 'কলেজ রোড',
+      rating: 4.6,
+      ratingCount: 260,
+      etaMinutes: 25,
+      distanceKm: 0.6,
+      status: RestaurantStatus.closed,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r7-f1',
+          restaurantId: 'r7',
+          name: 'বগুড়ার দই',
+          description: 'মাটির সরায় জমানো আসল বগুড়ার মিষ্টি দই।',
+          price: 220,
+          category: FoodCategory.mishti,
+          variants: <FoodVariant>[
+            FoodVariant(label: '১ কেজি'),
+            FoodVariant(label: 'আধা কেজি', priceDelta: -110),
+          ],
+        ),
+        FoodItem(
+          id: 'r7-f2',
+          restaurantId: 'r7',
+          name: 'মিষ্টি দই (আধা কেজি)',
+          description: 'পরিবারের জন্য হাফ কেজি প্যাক।',
+          price: 130,
+          category: FoodCategory.mishti,
+        ),
+        FoodItem(
+          id: 'r7-f3',
+          restaurantId: 'r7',
+          name: 'মাঠা ঘোল (গ্লাস)',
+          description: 'ঠান্ডা মাঠা ঘোল — গরমে আরাম।',
+          price: 60,
+          category: FoodCategory.mishti,
+        ),
+      ],
+    ),
+    Restaurant(
+      id: 'r8',
+      name: 'স্ন্যাকস শপ',
+      cuisine: 'নাগেটস • উইংস • কফি',
+      landmark: 'হাসপাতাল রোড',
+      rating: 4.2,
+      ratingCount: 60,
+      etaMinutes: 30,
+      distanceKm: 1.1,
+      status: RestaurantStatus.open,
+      menu: <FoodItem>[
+        FoodItem(
+          id: 'r8-f1',
+          restaurantId: 'r8',
+          name: 'চিকেন নাগেটস (৬ পিস)',
+          description: 'ক্রিসপি নাগেটস, বারবিকিউ ডিপ সহ।',
+          price: 130,
+          category: FoodCategory.burger,
+        ),
+        FoodItem(
+          id: 'r8-f2',
+          restaurantId: 'r8',
+          name: 'ফিশ ফিঙ্গার (৪ পিস)',
+          description: 'ক্রাম্ব-কোটেড ফিশ ফিঙ্গার, টার্টার সস সহ।',
+          price: 140,
+          category: FoodCategory.burger,
+        ),
+        FoodItem(
+          id: 'r8-f3',
+          restaurantId: 'r8',
+          name: 'চিকেন উইংস (৪ পিস)',
+          description: 'হানি-চিলি গ্লেজড স্টিকি উইংস।',
+          price: 160,
+          category: FoodCategory.burger,
+          spiceCustomizable: true,
+        ),
+        FoodItem(
+          id: 'r8-f4',
+          restaurantId: 'r8',
+          name: 'কোল্ড কফি',
+          description: 'ক্রিমি কোল্ড কফি, চকলেট ড্রিজল সহ।',
+          price: 90,
+          category: FoodCategory.burger,
+        ),
+      ],
+    ),
+  ];
+
+  static Restaurant? restaurantById(String id) {
+    for (final Restaurant r in restaurants) {
+      if (r.id == id) return r;
+    }
+    return null;
+  }
+
+  static FoodItem? foodById(String id) {
+    for (final Restaurant r in restaurants) {
+      for (final FoodItem f in r.menu) {
+        if (f.id == id) return f;
+      }
+    }
+    return null;
+  }
+}
