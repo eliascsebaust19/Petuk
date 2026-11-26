@@ -37,6 +37,8 @@ final class CheckoutPlaceOrderRequested extends CheckoutEvent {
     required this.area,
     required this.landmark,
     this.note = '',
+    this.latitude,
+    this.longitude,
     this.trxId,
   });
 
@@ -48,13 +50,24 @@ final class CheckoutPlaceOrderRequested extends CheckoutEvent {
   final String area;
   final String landmark;
   final String note;
+  final double? latitude;
+  final double? longitude;
 
   /// bKash/Nagad transaction id (required for wallet payments).
   final String? trxId;
 
   @override
-  List<Object?> get props =>
-      <Object?>[recipientName, phone, zone, area, landmark, note, trxId];
+  List<Object?> get props => <Object?>[
+        recipientName,
+        phone,
+        zone,
+        area,
+        landmark,
+        note,
+        latitude,
+        longitude,
+        trxId,
+      ];
 }
 
 // ---------------------------------------------------------------------
@@ -163,6 +176,8 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
           area: event.area.trim(),
           landmark: event.landmark.trim(),
           note: event.note.trim(),
+          latitude: event.latitude,
+          longitude: event.longitude,
         ),
         paymentMethod: state.paymentMethod,
         trxId: state.paymentMethod.isWallet ? trxId : null,

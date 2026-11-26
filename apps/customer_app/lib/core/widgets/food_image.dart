@@ -6,10 +6,14 @@ import '../../data/models/food_category.dart';
 /// Soft category gradients used for offline-first food visuals.
 List<Color> categoryGradient(FoodCategory category) => switch (category) {
       FoodCategory.biryani => const <Color>[Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+      FoodCategory.bhuna => const <Color>[Color(0xFFFEE2E2), Color(0xFFFECACA)],
       FoodCategory.burger => const <Color>[Color(0xFFCCFBF1), Color(0xFF99F6E4)],
       FoodCategory.pizza => const <Color>[Color(0xFFFFEDD5), Color(0xFFFED7AA)],
+      FoodCategory.snacks => const <Color>[Color(0xFFFEF9C3), Color(0xFFFEF08A)],
       FoodCategory.cake => const <Color>[Color(0xFFFCE7F3), Color(0xFFFBCFE8)],
       FoodCategory.mishti => const <Color>[Color(0xFFEDE9FE), Color(0xFFDDD6FE)],
+      FoodCategory.drinks => const <Color>[Color(0xFFE0F2FE), Color(0xFFBAE6FD)],
+      FoodCategory.chinese => const <Color>[Color(0xFFDCFCE7), Color(0xFFBBF7D0)],
     };
 
 /// Food/restaurant visual.

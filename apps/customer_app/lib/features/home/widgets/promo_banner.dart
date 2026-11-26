@@ -42,14 +42,14 @@ class _PromoBannerState extends State<PromoBanner> {
       title: 'প্রথম অর্ডারে ফ্রি ডেলিভারি!',
       subtitle: 'বীরগঞ্জ পৌর এলাকায় ৩০–৪৫ মিনিটে',
       emoji: '🎉',
-      colors: <Color>[AppColors.primaryDark, AppColors.primary],
+      colors: <Color>[AppColors.primaryDeep, AppColors.primary, AppColors.secondary],
       code: 'FIRSTFREE',
     ),
     _Promo(
       title: '৳৪০ ফ্ল্যাট ছাড়',
       subtitle: 'ন্যূনতম ৳১৫০ অর্ডারে',
       emoji: '🍔',
-      colors: <Color>[Color(0xFFF59E0B), Color(0xFFFBBF24)],
+      colors: <Color>[Color(0xFFF59E0B), Color(0xFFFB923C)],
       code: 'WELCOME40',
       darkText: true,
     ),
@@ -57,7 +57,7 @@ class _PromoBannerState extends State<PromoBanner> {
       title: 'বাথডে কেক পৌঁছে যাবে ঘরেই',
       subtitle: 'ক্যান্ডেল, ছুরি ও উইশিং কার্ড ফ্রি',
       emoji: '🎂',
-      colors: <Color>[Color(0xFFEC4899), Color(0xFFF472B6)],
+      colors: <Color>[AppColors.tertiary, Color(0xFFF472B6)],
     ),
   ];
 

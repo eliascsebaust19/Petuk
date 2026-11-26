@@ -54,6 +54,25 @@ abstract final class AppConstants {
   ];
 
   // ---------------------------------------------------------------------
+  // Birganj GPS & Google Maps defaults.
+  // ---------------------------------------------------------------------
+
+  /// Birganj Pourashava center (Dinajpur, Bangladesh).
+  static const double birganjLat = 25.8565;
+  static const double birganjLng = 88.6510;
+  static const double maxDeliveryRadiusKm = 12.0;
+
+  /// Approximate zone centroids for automatic GPS → zone snapping.
+  static const Map<String, ({double lat, double lng})> serviceZoneCenters =
+      <String, ({double lat, double lng})>{
+    'বীরগঞ্জ পৌরসভা': (lat: 25.8565, lng: 88.6510),
+    'কলেজ মোড়': (lat: 25.8602, lng: 88.6478),
+    'হাসপাতাল রোড': (lat: 25.8538, lng: 88.6552),
+    'পুরাতন বাজার': (lat: 25.8594, lng: 88.6536),
+    'মহাসড়ক সংলগ্ন এলাকা': (lat: 25.8515, lng: 88.6458),
+  };
+
+  // ---------------------------------------------------------------------
   // Phase-1 manual operations contacts.
   //
   // These are demo numbers. Replace with the real ops SIM, bKash merchant

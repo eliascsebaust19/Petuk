@@ -32,6 +32,8 @@ class Restaurant extends Equatable {
     required this.status,
     required this.menu,
     this.imageUrl,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
@@ -51,9 +53,12 @@ class Restaurant extends Equatable {
   final double distanceKm;
   final RestaurantStatus status;
   final String? imageUrl;
+  final double? latitude;
+  final double? longitude;
   final List<FoodItem> menu;
 
   bool get isOrderable => status != RestaurantStatus.closed;
+  bool get hasCoordinates => latitude != null && longitude != null;
 
   Set<FoodCategory> get categories =>
       menu.map((FoodItem f) => f.category).toSet();
@@ -76,6 +81,8 @@ class Restaurant extends Equatable {
         orElse: () => RestaurantStatus.open,
       ),
       imageUrl: json['image_url'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       menu: ((json['menu'] as List<dynamic>?) ?? <dynamic>[])
           .map((dynamic e) => FoodItem.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -93,6 +100,8 @@ class Restaurant extends Equatable {
         'distance_km': distanceKm,
         'status': status.name,
         'image_url': imageUrl,
+        'latitude': latitude,
+        'longitude': longitude,
         'menu': menu.map((FoodItem f) => f.toJson()).toList(),
       };
 
@@ -108,6 +117,8 @@ class Restaurant extends Equatable {
         distanceKm,
         status,
         imageUrl,
+        latitude,
+        longitude,
         menu,
       ];
 }

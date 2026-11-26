@@ -3,23 +3,25 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
-/// Light theme implementing the SRS design guide:
-/// Deep Teal primary, Food Amber accent, Dark Slate text, Hind Siliguri
-/// (bundled) typography and 8px-radius full-width bold buttons.
+/// Material 3 light theme: Indigo primary, Sky Blue & Pink accents,
+/// strong typographic weight contrast, 12–16px unified radii, and
+/// soft low-contrast surfaces.
 abstract final class AppTheme {
-  static const double buttonRadius = 8;
+  static const double buttonRadius = 12;
   static const double cardRadius = 16;
-  static const double fieldRadius = 10;
+  static const double fieldRadius = 12;
 
   /// Bundled family name — must match the pubspec declaration exactly.
   static const String fontFamily = 'Hind Siliguri';
 
   static ThemeData get light {
-    final ColorScheme scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+    const ColorScheme scheme = ColorScheme.light(
       primary: AppColors.primary,
-      secondary: AppColors.accent,
-      surface: AppColors.surface,
+      secondary: AppColors.secondary,
+      tertiary: AppColors.tertiary,
+      surface: AppColors.background,
+      surfaceContainerHighest: AppColors.surfaceContainerHighest,
+      outline: AppColors.border,
       error: AppColors.error,
     );
 
@@ -29,16 +31,20 @@ abstract final class AppTheme {
     );
 
     final TextTheme textTheme = base.copyWith(
+      headlineLarge: base.headlineLarge?.copyWith(
+        fontWeight: FontWeight.w800,
+        fontSize: 32,
+      ),
       headlineMedium: base.headlineMedium?.copyWith(
         fontWeight: FontWeight.w700,
-        fontSize: 26,
+        fontSize: 24,
       ),
       headlineSmall: base.headlineSmall?.copyWith(
         fontWeight: FontWeight.w700,
         fontSize: 22,
       ),
       titleLarge: base.titleLarge?.copyWith(
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         fontSize: 20,
       ),
       titleMedium: base.titleMedium?.copyWith(
@@ -49,9 +55,16 @@ abstract final class AppTheme {
         fontWeight: FontWeight.w600,
         fontSize: 14,
       ),
-      bodyLarge: base.bodyLarge?.copyWith(fontSize: 16),
-      bodyMedium: base.bodyMedium?.copyWith(fontSize: 14),
+      bodyLarge: base.bodyLarge?.copyWith(
+        fontWeight: FontWeight.w400,
+        fontSize: 16,
+      ),
+      bodyMedium: base.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w400,
+        fontSize: 14,
+      ),
       bodySmall: base.bodySmall?.copyWith(
+        fontWeight: FontWeight.w400,
         fontSize: 12,
         color: AppColors.slate60,
       ),
@@ -64,14 +77,15 @@ abstract final class AppTheme {
         fontSize: 12,
       ),
       labelSmall: base.labelSmall?.copyWith(
-        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
         color: AppColors.slate60,
       ),
     );
 
-    final OutlineInputBorder enabledBorder = OutlineInputBorder(
+    final OutlineInputBorder borderNone = OutlineInputBorder(
       borderRadius: BorderRadius.circular(fieldRadius),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide.none,
     );
 
     return ThemeData(
@@ -89,7 +103,7 @@ abstract final class AppTheme {
         foregroundColor: AppColors.slate,
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: AppColors.slate,
         ),
@@ -99,10 +113,11 @@ abstract final class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          shadowColor: AppColors.tealGlow,
           disabledBackgroundColor: AppColors.border,
           disabledForegroundColor: AppColors.slate40,
           minimumSize: const Size(double.infinity, 52),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           elevation: 0,
           textStyle: const TextStyle(
             fontFamily: fontFamily,
@@ -114,14 +129,25 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(buttonRadius),
+          ),
+        ),
+      ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size(double.infinity, 52),
-          side: const BorderSide(color: AppColors.primary, width: 1.4),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          side: const BorderSide(color: AppColors.border, width: 1.5),
           textStyle: const TextStyle(
             fontFamily: fontFamily,
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w700,
           ),
           shape: RoundedRectangleBorder(
@@ -139,29 +165,37 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        elevation: 2,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.surfaceContainerHighest,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 14,
+          vertical: 16,
         ),
         hintStyle: const TextStyle(color: AppColors.slate40, fontSize: 14),
         labelStyle: const TextStyle(color: AppColors.slate60, fontSize: 14),
         errorStyle: const TextStyle(color: AppColors.error, fontSize: 12),
-        border: enabledBorder,
-        enabledBorder: enabledBorder,
+        border: borderNone,
+        enabledBorder: borderNone,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(fieldRadius),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(fieldRadius),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(fieldRadius),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -189,7 +223,7 @@ abstract final class AppTheme {
           fontSize: 14,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
       dialogTheme: const DialogThemeData(

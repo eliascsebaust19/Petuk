@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/bn_format.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -9,17 +10,17 @@ import '../../../core/widgets/error_view.dart';
 import '../../../data/models/food_category.dart';
 import '../../../data/models/restaurant.dart';
 import '../../../data/repositories/catalog_repository.dart';
-import '../../auth/bloc/auth_bloc.dart';
-import '../../cart/bloc/cart_bloc.dart';
-import '../../cart/bloc/cart_event.dart';
+import '../../location/pages/restaurants_map_page.dart';
+import '../../profile/bloc/profile_bloc.dart';
 import '../bloc/home_bloc.dart';
+import '../bloc/shell_cubit.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/location_selector.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/restaurant_card.dart';
 
-/// Home: location selector ("বীরগঞ্জ পৌরসভা"), search, category chips,
-/// promo banners and the restaurant list (SRS FR-C02/03).
+/// Home: location selector ("বীরগঞ্জ পৌরসভা") + GPS/map trigger, search,
+/// scrollable category chips, promo banners and the restaurant list.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -131,11 +132,25 @@ class _HomeView extends StatelessWidget {
                                             .titleMedium,
                                       ),
                                     ),
-                                    Text(
-                                      '${BnFormat.digits(state.filtered.length)}টি',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall,
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primarySoft,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${BnFormat.digits(state.filtered.length)}টি',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: AppColors.primaryDeep,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -145,8 +160,18 @@ class _HomeView extends StatelessWidget {
                                   in state.filtered)
                                 RestaurantCard(
                                   restaurant: restaurant,
-                                  onTap: () => Navigator.of(context)
-                                      .pushNamed(
+                                  distanceOverrideKm:
+                                      (state.userLatitude != null &&
+                                              state.userLongitude != null &&
+                                              restaurant.hasCoordinates)
+                                          ? LocationService.distanceKm(
+                                              state.userLatitude!,
+                                              state.userLongitude!,
+                                              restaurant.latitude!,
+                                              restaurant.longitude!,
+                                            )
+                                          : null,
+                                  onTap: () => Navigator.of(context).pushNamed(
                                     AppRoutes.restaurant,
                                     arguments: restaurant,
                                   ),
@@ -180,138 +205,200 @@ class _HomeHeaderState extends State<_HomeHeader> {
     super.dispose();
   }
 
-  void _signOut(BuildContext context) {
-    context.read<CartBloc>().add(const CartClearRequested());
-    context.read<AuthBloc>().add(const AuthSignedOut());
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRoutes.login,
-      (Route<dynamic> route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      child: Column(
-        children: <Widget>[
-          Row(
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: <Color>[AppColors.primaryTint, AppColors.background],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: CustomPaint(
+        painter: _DotPatternPainter(
+          color: AppColors.primary.withValues(alpha: 0.05),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
             children: <Widget>[
-              const Icon(
-                Icons.location_on_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: BlocBuilder<HomeBloc, HomeState>(
-                  buildWhen: (HomeState p, HomeState c) =>
-                      p.zone != c.zone,
-                  builder: (BuildContext context, HomeState state) {
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () => showLocationSelector(context),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          children: <Widget>[
-                            Flexible(
-                              child: Text(
-                                state.zone,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: text.titleMedium,
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: BlocBuilder<HomeBloc, HomeState>(
+                      buildWhen: (HomeState p, HomeState c) =>
+                          p.zone != c.zone || p.userLatitude != c.userLatitude,
+                      builder: (BuildContext context, HomeState state) {
+                        return Material(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => showLocationSelector(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 9,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.primarySoft,
+                                ),
+                                boxShadow: const <BoxShadow>[
+                                  BoxShadow(
+                                    color: AppColors.cardShadow,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: <Widget>[
+                                  Icon(
+                                    state.userLatitude != null
+                                        ? Icons.my_location_rounded
+                                        : Icons.location_on_rounded,
+                                    color: AppColors.primary,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      state.zone,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: text.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 20,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ],
                               ),
                             ),
-                            const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 22,
-                              color: AppColors.slate60,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (BuildContext context, AuthState auth) {
-                  return PopupMenuButton<String>(
-                    tooltip: 'প্রোফাইল',
-                    onSelected: (String value) {
-                      if (value == 'logout') _signOut(context);
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                      PopupMenuItem<String>(
-                        enabled: false,
-                        child: Text(
-                          auth.session?.displayName ?? 'অতিথি',
-                          style: text.bodyMedium
-                              ?.copyWith(color: AppColors.slate60),
-                        ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'logout',
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.logout_rounded,
-                              size: 18,
-                              color: AppColors.error,
-                            ),
-                            SizedBox(width: 8),
-                            Text('লগআউট'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: const CircleAvatar(
-                      radius: 17,
-                      backgroundColor: AppColors.primarySoft,
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
+                          ),
+                        );
+                      },
                     ),
-                  );
+                  ),
+                  const SizedBox(width: 8),
+                  BlocBuilder<HomeBloc, HomeState>(
+                    builder: (BuildContext context, HomeState state) {
+                      return IconButton.filledTonal(
+                        tooltip: 'রেস্তোরাঁ ম্যাপ',
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.secondarySoft,
+                          foregroundColor: AppColors.secondary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => RestaurantsMapPage(
+                              restaurants: state.restaurants,
+                              userLatitude: state.userLatitude,
+                              userLongitude: state.userLongitude,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.map_outlined, size: 20),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  BlocBuilder<ProfileBloc, ProfileState>(
+                    builder:
+                        (BuildContext context, ProfileState profileState) {
+                      final String emoji =
+                          profileState.profile?.avatarEmoji ?? '😋';
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => context.read<ShellCubit>().setIndex(3),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySoft,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 19),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                onChanged: (String query) {
+                  context.read<HomeBloc>().add(HomeQueryChanged(query));
+                  setState(() {});
                 },
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  hintText: 'খাবার বা রেস্তোরাঁ খুঁজুন…',
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.primary,
+                  ),
+                  suffixIcon: _searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                          onPressed: () {
+                            _searchController.clear();
+                            context
+                                .read<HomeBloc>()
+                                .add(const HomeQueryChanged(''));
+                            setState(() {});
+                          },
+                        ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _searchController,
-            textInputAction: TextInputAction.search,
-            onChanged: (String query) {
-              context.read<HomeBloc>().add(HomeQueryChanged(query));
-              setState(() {});
-            },
-            decoration: InputDecoration(
-              hintText: 'খাবার বা রেস্তোরাঁ খুঁজুন…',
-              prefixIcon: const Icon(
-                Icons.search_rounded,
-                color: AppColors.slate40,
-              ),
-              suffixIcon: _searchController.text.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
-                      onPressed: () {
-                        _searchController.clear();
-                        context
-                            .read<HomeBloc>()
-                            .add(const HomeQueryChanged(''));
-                        setState(() {});
-                      },
-                    ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
+}
+
+/// Subtle decorative dot grid per UI design skill background guidelines.
+class _DotPatternPainter extends CustomPainter {
+  const _DotPatternPainter({required this.color});
+
+  static const double _spacing = 22;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()..color = color;
+    for (double y = _spacing / 2; y < size.height; y += _spacing) {
+      for (double x = _spacing / 2; x < size.width; x += _spacing) {
+        canvas.drawCircle(Offset(x, y), 1.4, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DotPatternPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

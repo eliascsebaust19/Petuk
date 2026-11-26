@@ -1,12 +1,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Catalog photos, OTP API, FCM (Phase 2). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- GPS delivery pin & nearby restaurant distance. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <queries>
         <!-- Rider / support call button (url_launcher tel:). -->
         <intent>
             <action android:name="android.intent.action.DIAL"/>
             <data android:scheme="tel"/>
+        </intent>
+        <!-- Open Google Maps directions / place links. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="geo"/>
         </intent>
         <!-- Text selection toolbar (Flutter template). -->
         <intent>

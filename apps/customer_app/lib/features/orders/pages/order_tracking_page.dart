@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/bd_phone.dart';
 import '../../../core/utils/bn_format.dart';
 import '../../../core/widgets/bill_row.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/petuk_map_view.dart';
 import '../../../data/models/cart_item.dart';
 import '../../../data/models/order.dart';
+import '../../../data/models/restaurant.dart';
 import '../../../data/repositories/order_repository.dart';
+import '../../../data/sources/mock_catalog_data.dart';
 import '../../cart/widgets/bill_summary.dart';
 import '../bloc/order_tracking_bloc.dart';
 import '../widgets/delivery_otp_card.dart';
@@ -18,9 +24,8 @@ import '../widgets/order_card.dart';
 import '../widgets/order_status_stepper.dart';
 import '../widgets/rider_card.dart';
 
-/// Live tracking (FR-C06): 4-step progress bar, rider contact card with
-/// call button, handover OTP, address and bill — all updating in real
-/// time from the order stream.
+/// Live tracking (FR-C06): 4-step progress bar, interactive live route map +
+/// Google Maps directions, rider contact card, handover OTP, address and bill.
 class OrderTrackingPage extends StatelessWidget {
   const OrderTrackingPage({super.key, required this.orderId});
 
@@ -148,6 +153,8 @@ class _TrackingView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              _LiveDeliveryMapCard(order: order),
+              const SizedBox(height: 12),
               RiderCard(rider: order.rider, status: order.status),
               const SizedBox(height: 12),
               DeliveryOtpCard(
@@ -269,6 +276,153 @@ class _TrackingView extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _LiveDeliveryMapCard extends StatelessWidget {
+  const _LiveDeliveryMapCard({required this.order});
+
+  final Order order;
+
+  LatLng _restaurantPoint() {
+    final Restaurant? r = MockCatalogData.restaurantById(order.restaurantId);
+    return LatLng(
+      r?.latitude ?? AppConstants.birganjLat,
+      r?.longitude ?? AppConstants.birganjLng,
+    );
+  }
+
+  LatLng _customerPoint() {
+    if (order.address.hasCoordinates) {
+      return LatLng(order.address.latitude!, order.address.longitude!);
+    }
+    final ({double lat, double lng})? zoneCenter =
+        AppConstants.serviceZoneCenters[order.address.zone];
+    return LatLng(
+      zoneCenter?.lat ?? (AppConstants.birganjLat + 0.004),
+      zoneCenter?.lng ?? (AppConstants.birganjLng - 0.003),
+    );
+  }
+
+  LatLng _riderPoint(LatLng from, LatLng to) {
+    final double t = switch (order.status) {
+      OrderStatus.pending => 0.0,
+      OrderStatus.preparing => 0.12,
+      OrderStatus.onTheWay => 0.58,
+      OrderStatus.delivered => 1.0,
+    };
+    return LatLng(
+      from.latitude + (to.latitude - from.latitude) * t,
+      from.longitude + (to.longitude - from.longitude) * t,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final LatLng restPt = _restaurantPoint();
+    final LatLng custPt = _customerPoint();
+    final LatLng riderPt = _riderPoint(restPt, custPt);
+    final LatLng center = LatLng(
+      (restPt.latitude + custPt.latitude) / 2,
+      (restPt.longitude + custPt.longitude) / 2,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(
+                Icons.route_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'লাইভ ডেলিভারি ম্যাপ',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minimumSize: const Size(0, 32),
+                ),
+                onPressed: () => LocationService.openDirectionsInGoogleMaps(
+                  originLat: restPt.latitude,
+                  originLng: restPt.longitude,
+                  destLat: custPt.latitude,
+                  destLng: custPt.longitude,
+                ),
+                icon: const Icon(Icons.directions_rounded, size: 16),
+                label: const Text('Google Maps'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          PetukMapView(
+            center: center,
+            zoom: 14.5,
+            height: 200,
+            borderRadius: 12,
+            polylines: <Polyline>[
+              Polyline(
+                points: <LatLng>[restPt, custPt],
+                color: AppColors.primary,
+                strokeWidth: 4,
+              ),
+            ],
+            markers: <Marker>[
+              Marker(
+                point: restPt,
+                width: 110,
+                height: 62,
+                alignment: Alignment.topCenter,
+                child: const PetukMapPin(
+                  icon: Icons.storefront_rounded,
+                  color: AppColors.accentWarm,
+                  label: 'রেস্তোরাঁ',
+                  size: 34,
+                ),
+              ),
+              Marker(
+                point: custPt,
+                width: 110,
+                height: 62,
+                alignment: Alignment.topCenter,
+                child: const PetukMapPin(
+                  icon: Icons.home_rounded,
+                  color: AppColors.primary,
+                  label: 'আপনি',
+                  size: 34,
+                ),
+              ),
+              if (order.status == OrderStatus.onTheWay)
+                Marker(
+                  point: riderPt,
+                  width: 100,
+                  height: 64,
+                  alignment: Alignment.topCenter,
+                  child: const PetukMapPin(
+                    icon: Icons.delivery_dining_rounded,
+                    color: AppColors.info,
+                    label: 'রাইডার',
+                    size: 38,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

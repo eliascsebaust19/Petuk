@@ -24,9 +24,13 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>আপনার ডেলিভারি ঠিকানা ও কাছের রেস্তোরাঁ দেখাতে পেটুক আপনার লোকেশন ব্যবহার করে।</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tel</string>
+		<string>comgooglemaps</string>
+		<string>https</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

@@ -57,8 +57,21 @@ class _PhoneLoginViewState extends State<_PhoneLoginView> {
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      body: SafeArea(
+      backgroundColor: AppColors.background,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: <double>[0.0, 0.45, 1.0],
+            colors: <Color>[
+              AppColors.surface,
+              AppColors.surface,
+              AppColors.primaryTint,
+            ],
+          ),
+        ),
+        child: SafeArea(
         child: BlocConsumer<PhoneLoginCubit, PhoneLoginState>(
           listener: (BuildContext context, PhoneLoginState state) async {
             if (state.status == PhoneLoginStatus.sent &&
@@ -218,6 +231,7 @@ class _PhoneLoginViewState extends State<_PhoneLoginView> {
               },
             );
           },
+        ),
         ),
       ),
     );

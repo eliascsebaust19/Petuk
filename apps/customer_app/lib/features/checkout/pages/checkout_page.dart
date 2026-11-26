@@ -4,22 +4,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/bd_phone.dart';
 import '../../../core/utils/bn_format.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/primary_button.dart';
+import '../../../data/models/delivery_address.dart';
 import '../../../data/models/order.dart';
+import '../../../data/models/user_profile.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../cart/bloc/cart_bloc.dart';
 import '../../cart/bloc/cart_state.dart';
 import '../../cart/widgets/bill_summary.dart';
+import '../../location/pages/map_picker_page.dart';
+import '../../profile/bloc/profile_bloc.dart';
 import '../bloc/checkout_bloc.dart';
 import '../widgets/payment_method_selector.dart';
 
-/// Checkout: landmark-first address form (FR-C04) + payment toggle
-/// (COD / bKash / Nagad) + bill, ending in live order tracking.
+/// Checkout: saved-address quick picker + GPS/Map pin + landmark form (FR-C04)
+/// + payment toggle (COD / bKash / Nagad) + bill, ending in live tracking.
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
 
@@ -45,21 +50,49 @@ class _CheckoutView extends StatefulWidget {
 class _CheckoutViewState extends State<_CheckoutView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
-  final TextEditingController _areaController = TextEditingController();
-  final TextEditingController _landmarkController = TextEditingController();
-  final TextEditingController _noteController = TextEditingController();
+  late final TextEditingController _areaController;
+  late final TextEditingController _landmarkController;
+  late final TextEditingController _noteController;
   final TextEditingController _trxController = TextEditingController();
 
   String _zone = AppConstants.defaultZone;
   String _phone = '';
+  double? _latitude;
+  double? _longitude;
+  bool _locating = false;
+  bool _saveToProfile = true;
+  String? _selectedAddressId;
 
   @override
   void initState() {
     super.initState();
     final AuthState auth = context.read<AuthBloc>().state;
-    _phone = auth.session?.phone ?? '';
-    _nameController =
-        TextEditingController(text: auth.session?.name ?? '');
+    final UserProfile? profile = context.read<ProfileBloc>().state.profile;
+    final DeliveryAddress? saved = profile?.defaultAddress;
+
+    _phone = auth.session?.phone ?? profile?.phone ?? '';
+    _nameController = TextEditingController(
+      text: saved?.recipientName.isNotEmpty == true
+          ? saved!.recipientName
+          : (profile?.name.isNotEmpty == true
+              ? profile!.name
+              : (auth.session?.name ?? '')),
+    );
+    _areaController = TextEditingController(text: saved?.area ?? '');
+    _landmarkController = TextEditingController(text: saved?.landmark ?? '');
+    _noteController = TextEditingController(text: saved?.note ?? '');
+
+    if (saved != null) {
+      _selectedAddressId = saved.id;
+      if (AppConstants.serviceZones.contains(saved.zone)) {
+        _zone = saved.zone;
+      }
+      _latitude = saved.latitude;
+      _longitude = saved.longitude;
+    } else if (profile != null &&
+        AppConstants.serviceZones.contains(profile.defaultZone)) {
+      _zone = profile.defaultZone;
+    }
   }
 
   @override
@@ -72,9 +105,86 @@ class _CheckoutViewState extends State<_CheckoutView> {
     super.dispose();
   }
 
+  void _applySavedAddress(DeliveryAddress address) {
+    setState(() {
+      _selectedAddressId = address.id;
+      if (address.recipientName.isNotEmpty) {
+        _nameController.text = address.recipientName;
+      }
+      if (AppConstants.serviceZones.contains(address.zone)) {
+        _zone = address.zone;
+      }
+      _areaController.text = address.area;
+      _landmarkController.text = address.landmark;
+      _noteController.text = address.note;
+      _latitude = address.latitude;
+      _longitude = address.longitude;
+    });
+  }
+
+  Future<void> _detectGps() async {
+    setState(() => _locating = true);
+    try {
+      final GpsFix fix = await LocationService.fetchCurrentGps();
+      if (!mounted) return;
+      setState(() {
+        _latitude = fix.latitude;
+        _longitude = fix.longitude;
+        _zone = fix.zone;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('GPS অবস্থান সেট হয়েছে • ${fix.zone}')),
+      );
+    } on LocationFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
+  }
+
+  Future<void> _openMapPicker() async {
+    final PickedLocation? picked = await Navigator.of(context).push<PickedLocation>(
+      MaterialPageRoute<PickedLocation>(
+        builder: (_) => MapPickerPage(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+          initialZone: _zone,
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _latitude = picked.latitude;
+        _longitude = picked.longitude;
+        _zone = picked.zone;
+      });
+    }
+  }
+
   void _placeOrder(BuildContext context) {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_saveToProfile && context.read<ProfileBloc>().state.profile != null) {
+      context.read<ProfileBloc>().add(
+            ProfileAddressSaved(
+              DeliveryAddress(
+                id: _selectedAddressId,
+                recipientName: _nameController.text.trim(),
+                phone: _phone,
+                zone: _zone,
+                area: _areaController.text.trim(),
+                landmark: _landmarkController.text.trim(),
+                note: _noteController.text.trim(),
+                latitude: _latitude,
+                longitude: _longitude,
+                isDefault: true,
+              ),
+            ),
+          );
+    }
     context.read<CheckoutBloc>().add(
           CheckoutPlaceOrderRequested(
             recipientName: _nameController.text,
@@ -83,6 +193,8 @@ class _CheckoutViewState extends State<_CheckoutView> {
             area: _areaController.text,
             landmark: _landmarkController.text,
             note: _noteController.text,
+            latitude: _latitude,
+            longitude: _longitude,
             trxId: _trxController.text,
           ),
         );
@@ -136,6 +248,10 @@ class _CheckoutViewState extends State<_CheckoutView> {
   @override
   Widget build(BuildContext context) {
     final TextTheme text = Theme.of(context).textTheme;
+    final List<DeliveryAddress> savedAddresses =
+        context.watch<ProfileBloc>().state.profile?.savedAddresses ??
+            const <DeliveryAddress>[];
+
     return Scaffold(
       appBar: AppBar(title: const Text('চেকআউট')),
       body: BlocConsumer<CheckoutBloc, CheckoutState>(
@@ -175,8 +291,131 @@ class _CheckoutViewState extends State<_CheckoutView> {
                     Text('ডেলিভারি ঠিকানা', style: text.titleMedium),
                     const SizedBox(height: 4),
                     Text(
-                      'বীরগঞ্জে বাড়ির নম্বর নেই — তাই ল্যান্ডমার্ক দেওয়া আবশ্যক।',
+                      'বীরগঞ্জে বাড়ির নম্বর নেই — তাই ল্যান্ডমার্ক ও ম্যাপ পিন দেওয়া সুবিধাজনক।',
                       style: text.bodySmall,
+                    ),
+                    if (savedAddresses.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: savedAddresses.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (BuildContext context, int index) {
+                            final DeliveryAddress addr = savedAddresses[index];
+                            final bool selected =
+                                _selectedAddressId == addr.id;
+                            return ChoiceChip(
+                              avatar: Icon(
+                                addr.hasCoordinates
+                                    ? Icons.gps_fixed_rounded
+                                    : Icons.bookmark_outline_rounded,
+                                size: 15,
+                                color: selected
+                                    ? AppColors.primaryDeep
+                                    : AppColors.slate60,
+                              ),
+                              label: Text('${addr.label} • ${addr.zone}'),
+                              selected: selected,
+                              selectedColor: AppColors.primarySoft,
+                              onSelected: (_) => _applySavedAddress(addr),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryTint,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.primarySoft),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          Row(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.map_rounded,
+                                size: 18,
+                                color: AppColors.primaryDark,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _latitude != null && _longitude != null
+                                      ? 'GPS পিন: ${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}'
+                                      : 'দ্রুত ডেলিভারির জন্য GPS বা ম্যাপ পিন দিন',
+                                  style: text.bodySmall?.copyWith(
+                                    color: AppColors.primaryDeep,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              if (_latitude != null && _longitude != null)
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 28),
+                                  ),
+                                  onPressed: () =>
+                                      LocationService.openInGoogleMaps(
+                                    _latitude!,
+                                    _longitude!,
+                                    label: _landmarkController.text.isEmpty
+                                        ? _zone
+                                        : _landmarkController.text,
+                                  ),
+                                  child: const Text('Google Maps'),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size(0, 40),
+                                    backgroundColor: AppColors.surface,
+                                  ),
+                                  onPressed: _locating ? null : _detectGps,
+                                  icon: _locating
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.my_location_rounded,
+                                          size: 16,
+                                        ),
+                                  label: const Text('আমার GPS'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(0, 40),
+                                  ),
+                                  onPressed: _openMapPicker,
+                                  icon: const Icon(
+                                    Icons.pin_drop_outlined,
+                                    size: 16,
+                                  ),
+                                  label: const Text('ম্যাপে পিন করুন'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -266,7 +505,22 @@ class _CheckoutViewState extends State<_CheckoutView> {
                         hintText: 'যেমন: বাসায় কেউ না থাকলে ফোন দিন',
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      activeColor: AppColors.primary,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: Text(
+                        'ঠিকানাটি প্রোফাইলে সেভ রাখুন',
+                        style: text.bodySmall?.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      value: _saveToProfile,
+                      onChanged: (bool? v) =>
+                          setState(() => _saveToProfile = v ?? true),
+                    ),
+                    const SizedBox(height: 14),
                     Text('পেমেন্ট মাধ্যম', style: text.titleMedium),
                     const SizedBox(height: 12),
                     PaymentMethodSelector(

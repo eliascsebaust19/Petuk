@@ -20,6 +20,8 @@ abstract final class MockCatalogData {
       ratingCount: 320,
       etaMinutes: 35,
       distanceKm: 1.2,
+      latitude: 25.8574,
+      longitude: 88.6502,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -73,7 +75,7 @@ abstract final class MockCatalogData {
           name: 'বোরহানি (গ্লাস)',
           description: 'টক-মিষ্টি পুদিনা বোরহানি, বিরিয়ানির সেরা সঙ্গী।',
           price: 40,
-          category: FoodCategory.biryani,
+          category: FoodCategory.drinks,
         ),
       ],
     ),
@@ -86,6 +88,8 @@ abstract final class MockCatalogData {
       ratingCount: 210,
       etaMinutes: 30,
       distanceKm: 0.8,
+      latitude: 25.8601,
+      longitude: 88.6479,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -112,7 +116,7 @@ abstract final class MockCatalogData {
           name: 'চিকেন রোল',
           description: 'পরোটা মোড়ানো চিকেন রোল, পেঁয়াজ-শসা সহ।',
           price: 90,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
           spiceCustomizable: true,
         ),
         FoodItem(
@@ -121,7 +125,7 @@ abstract final class MockCatalogData {
           name: 'চিকেন শর্মা',
           description: 'গার্লিক সসে মোড়ানো জুসি চিকেন শর্মা।',
           price: 110,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
           isAvailable: false,
         ),
         FoodItem(
@@ -130,7 +134,16 @@ abstract final class MockCatalogData {
           name: 'ফ্রেঞ্চ ফ্রাই',
           description: 'মচমচে সল্টেড ফ্রেঞ্চ ফ্রাই, টমেটো সস সহ।',
           price: 80,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
+        ),
+        FoodItem(
+          id: 'r2-f6',
+          restaurantId: 'r2',
+          name: 'চিকেন চাউমিন',
+          description: 'সবজি ও চিকেন স্ট্রিপস দিয়ে গরম চাইনিজ চাউমিন।',
+          price: 130,
+          category: FoodCategory.chinese,
+          spiceCustomizable: true,
         ),
       ],
     ),
@@ -143,6 +156,8 @@ abstract final class MockCatalogData {
       ratingCount: 95,
       etaMinutes: 40,
       distanceKm: 1.5,
+      latitude: 25.8542,
+      longitude: 88.6548,
       status: RestaurantStatus.busy,
       menu: <FoodItem>[
         FoodItem(
@@ -200,6 +215,8 @@ abstract final class MockCatalogData {
       ratingCount: 150,
       etaMinutes: 45,
       distanceKm: 2.1,
+      latitude: 25.8592,
+      longitude: 88.6534,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -266,6 +283,8 @@ abstract final class MockCatalogData {
       ratingCount: 180,
       etaMinutes: 30,
       distanceKm: 1.0,
+      latitude: 25.8568,
+      longitude: 88.6515,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -327,6 +346,8 @@ abstract final class MockCatalogData {
       ratingCount: 410,
       etaMinutes: 40,
       distanceKm: 3.0,
+      latitude: 25.8620,
+      longitude: 88.6610,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -336,7 +357,7 @@ abstract final class MockCatalogData {
           description:
               'জেলাজুড়ে বিখ্যাত ঝাড়বাড়ীর খাঁসির মাংস, ধীরে ভুনা।',
           price: 250,
-          category: FoodCategory.biryani,
+          category: FoodCategory.bhuna,
           spiceCustomizable: true,
         ),
         FoodItem(
@@ -345,7 +366,7 @@ abstract final class MockCatalogData {
           name: 'বিফ তেহারি',
           description: 'কম তেলে রান্না ঘরোয়া বিফ তেহারি।',
           price: 160,
-          category: FoodCategory.biryani,
+          category: FoodCategory.bhuna,
           spiceCustomizable: true,
         ),
         FoodItem(
@@ -354,7 +375,7 @@ abstract final class MockCatalogData {
           name: 'খিচুড়ি + বিফ ভুনা',
           description: 'ভুনা খিচুড়ির সাথে ঝাল বিফ ভুনা কম্বো।',
           price: 180,
-          category: FoodCategory.biryani,
+          category: FoodCategory.bhuna,
           spiceCustomizable: true,
         ),
         FoodItem(
@@ -363,7 +384,7 @@ abstract final class MockCatalogData {
           name: 'পরোটা (২ পিস)',
           description: 'খাস্তা পরোটা, ভুনার সাথে সেরা।',
           price: 40,
-          category: FoodCategory.biryani,
+          category: FoodCategory.bhuna,
         ),
       ],
     ),
@@ -376,6 +397,8 @@ abstract final class MockCatalogData {
       ratingCount: 260,
       etaMinutes: 25,
       distanceKm: 0.6,
+      latitude: 25.8599,
+      longitude: 88.6481,
       status: RestaurantStatus.closed,
       menu: <FoodItem>[
         FoodItem(
@@ -404,7 +427,7 @@ abstract final class MockCatalogData {
           name: 'মাঠা ঘোল (গ্লাস)',
           description: 'ঠান্ডা মাঠা ঘোল — গরমে আরাম।',
           price: 60,
-          category: FoodCategory.mishti,
+          category: FoodCategory.drinks,
         ),
       ],
     ),
@@ -417,6 +440,8 @@ abstract final class MockCatalogData {
       ratingCount: 60,
       etaMinutes: 30,
       distanceKm: 1.1,
+      latitude: 25.8535,
+      longitude: 88.6556,
       status: RestaurantStatus.open,
       menu: <FoodItem>[
         FoodItem(
@@ -425,7 +450,7 @@ abstract final class MockCatalogData {
           name: 'চিকেন নাগেটস (৬ পিস)',
           description: 'ক্রিসপি নাগেটস, বারবিকিউ ডিপ সহ।',
           price: 130,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
         ),
         FoodItem(
           id: 'r8-f2',
@@ -433,7 +458,7 @@ abstract final class MockCatalogData {
           name: 'ফিশ ফিঙ্গার (৪ পিস)',
           description: 'ক্রাম্ব-কোটেড ফিশ ফিঙ্গার, টার্টার সস সহ।',
           price: 140,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
         ),
         FoodItem(
           id: 'r8-f3',
@@ -441,7 +466,7 @@ abstract final class MockCatalogData {
           name: 'চিকেন উইংস (৪ পিস)',
           description: 'হানি-চিলি গ্লেজড স্টিকি উইংস।',
           price: 160,
-          category: FoodCategory.burger,
+          category: FoodCategory.snacks,
           spiceCustomizable: true,
         ),
         FoodItem(
@@ -450,7 +475,7 @@ abstract final class MockCatalogData {
           name: 'কোল্ড কফি',
           description: 'ক্রিমি কোল্ড কফি, চকলেট ড্রিজল সহ।',
           price: 90,
-          category: FoodCategory.burger,
+          category: FoodCategory.drinks,
         ),
       ],
     ),

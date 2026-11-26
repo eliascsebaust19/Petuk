@@ -54,6 +54,21 @@ final class HomeZoneChanged extends HomeEvent {
   List<Object?> get props => <Object?>[zone];
 }
 
+final class HomeGpsUpdated extends HomeEvent {
+  const HomeGpsUpdated({
+    required this.zone,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  final String zone;
+  final double latitude;
+  final double longitude;
+
+  @override
+  List<Object?> get props => <Object?>[zone, latitude, longitude];
+}
+
 // ---------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------
@@ -68,6 +83,8 @@ final class HomeState extends Equatable {
     this.category,
     this.query = '',
     this.zone = AppConstants.defaultZone,
+    this.userLatitude,
+    this.userLongitude,
     this.error,
   });
 
@@ -79,6 +96,8 @@ final class HomeState extends Equatable {
   final FoodCategory? category;
   final String query;
   final String zone;
+  final double? userLatitude;
+  final double? userLongitude;
   final String? error;
 
   static const Object _unset = Object();
@@ -90,6 +109,8 @@ final class HomeState extends Equatable {
     Object? category = _unset,
     String? query,
     String? zone,
+    double? userLatitude,
+    double? userLongitude,
     Object? error = _unset,
   }) {
     return HomeState(
@@ -100,13 +121,24 @@ final class HomeState extends Equatable {
           identical(category, _unset) ? this.category : category as FoodCategory?,
       query: query ?? this.query,
       zone: zone ?? this.zone,
+      userLatitude: userLatitude ?? this.userLatitude,
+      userLongitude: userLongitude ?? this.userLongitude,
       error: identical(error, _unset) ? this.error : error as String?,
     );
   }
 
   @override
-  List<Object?> get props =>
-      <Object?>[status, restaurants, filtered, category, query, zone, error];
+  List<Object?> get props => <Object?>[
+        status,
+        restaurants,
+        filtered,
+        category,
+        query,
+        zone,
+        userLatitude,
+        userLongitude,
+        error,
+      ];
 }
 
 // ---------------------------------------------------------------------
@@ -133,6 +165,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeZoneChanged>(
       (HomeZoneChanged event, Emitter<HomeState> emit) =>
           emit(state.copyWith(zone: event.zone)),
+    );
+    on<HomeGpsUpdated>(
+      (HomeGpsUpdated event, Emitter<HomeState> emit) => emit(
+        state.copyWith(
+          zone: event.zone,
+          userLatitude: event.latitude,
+          userLongitude: event.longitude,
+        ),
+      ),
     );
   }
 
